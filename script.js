@@ -2,7 +2,7 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 const frame = new Image();
-frame.src = "frame.png";
+frame.src = "frame.png"; // صورة الفريم 1080x1350
 
 const upload = document.getElementById("upload");
 
@@ -26,6 +26,7 @@ const PHOTO_AREA = {
 
 frame.onload = draw;
 
+/* 📤 تحميل الصورة */
 upload.addEventListener("change", e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -34,10 +35,11 @@ upload.addEventListener("change", e => {
   img.onload = () => {
     userImage = img;
 
-    /* ✅ Cover mode – يمنع الفراغ الأبيض */
     const scaleX = PHOTO_AREA.width / img.width;
     const scaleY = PHOTO_AREA.height / img.height;
-    scale = Math.max(scaleX, scaleY) * 1.05;
+
+    /* ✅ Cover + Safe Margin كبير يمنع الأبيض مع الدوران */
+    scale = Math.max(scaleX, scaleY) * 1.25;
 
     posX = PHOTO_AREA.x + PHOTO_AREA.width / 2;
     posY = PHOTO_AREA.y + PHOTO_AREA.height / 2;
@@ -48,6 +50,7 @@ upload.addEventListener("change", e => {
   img.src = URL.createObjectURL(file);
 });
 
+/* 🎨 الرسم */
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -131,10 +134,11 @@ function zoomIn() {
 function zoomOut() {
   scale *= 0.95;
 
-  const minScale = Math.max(
-    PHOTO_AREA.width / userImage.width,
-    PHOTO_AREA.height / userImage.height
-  );
+  const minScale =
+    Math.max(
+      PHOTO_AREA.width / userImage.width,
+      PHOTO_AREA.height / userImage.height
+    ) * 1.25;
 
   if (scale < minScale) scale = minScale;
   draw();
@@ -150,7 +154,7 @@ function rotateRight() {
   draw();
 }
 
-/* ⬇ حفظ الصورة بالجودة الكاملة */
+/* ⬇ حفظ الصورة كاملة بالفريم */
 function downloadImage() {
   const link = document.createElement("a");
   link.download = "FOMSU-Graduation.png";
