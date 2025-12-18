@@ -1,148 +1,154 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-/* حجم التصميم */
-canvas.width = 1080;
-canvas.height = 1350;
-
-/* تحميل الفريم */
 const frame = new Image();
-frame.src = "frame.png";
+frame.src = "frame.png"; // اسم صورة الفريم
 
-/* منطقة الصورة داخل الدرع */
+const upload = document.getElementById("upload");
+
+let userImage = null;
+let scale = 1;
+let rotation = 0;
+let posX = 0;
+let posY = 0;
+
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+
+/* 🔴 مساحة الصورة داخل الدرع (مظبوطة على التصميم) */
 const PHOTO_AREA = {
-  x: 290,
+  x: 300,
   y: 360,
-  width: 500,
+  width: 480,
   height: 620
 };
 
-let img = new Image();
-let scale = 1;
-let rotation = 0;
+frame.onload = draw;
 
-/* مركز الصورة */
-let x = PHOTO_AREA.x + PHOTO_AREA.width / 2;
-let y = PHOTO_AREA.y + PHOTO_AREA.height / 2;
+upload.addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-/* رفع الصورة */
-document.getElementById("upload").addEventListener("change", e => {
-  const reader = new FileReader();
-  reader.onload = () => {
-    img.src = reader.result;
-    img.onload = autoFit;
+  const img = new Image();
+  img.onload = () => {
+    userImage = img;
+
+    scale = Math.max(
+      PHOTO_AREA.width / img.width,
+      PHOTO_AREA.height / img.height
+    );
+
+    posX = PHOTO_AREA.x + PHOTO_AREA.width / 2;
+    posY = PHOTO_AREA.y + PHOTO_AREA.height / 2;
+    rotation = 0;
+
+    draw();
   };
-  reader.readAsDataURL(e.target.files[0]);
+  img.src = URL.createObjectURL(file);
 });
 
-/* ضبط تلقائي داخل الدرع */
-function autoFit() {
-  const scaleX = PHOTO_AREA.width / img.width;
-  const scaleY = PHOTO_AREA.height / img.height;
-  scale = Math.max(scaleX, scaleY);
-
-  x = PHOTO_AREA.x + PHOTO_AREA.width / 2;
-  y = PHOTO_AREA.y + PHOTO_AREA.height / 2;
-  rotation = 0;
-
-  document.getElementById("zoom").value = scale;
-  document.getElementById("rotate").value = 0;
-
-  draw();
-}
-
-/* Zoom */
-document.getElementById("zoom").addEventListener("input", e => {
-  scale = e.target.value;
-  draw();
-});
-
-/* Rotate */
-document.getElementById("rotate").addEventListener("input", e => {
-  rotation = e.target.value * Math.PI / 180;
-  draw();
-});
-
-/* Drag (Mobile + PC) */
-let dragging = false;
-let lastX = 0, lastY = 0;
-
-function getPos(evt) {
-  const r = canvas.getBoundingClientRect();
-  const sx = canvas.width / r.width;
-  const sy = canvas.height / r.height;
-
-  if (evt.touches) {
-    return {
-      x: (evt.touches[0].clientX - r.left) * sx,
-      y: (evt.touches[0].clientY - r.top) * sy
-    };
-  }
-  return {
-    x: (evt.clientX - r.left) * sx,
-    y: (evt.clientY - r.top) * sy
-  };
-}
-
-canvas.addEventListener("mousedown", e => {
-  dragging = true;
-  const p = getPos(e);
-  lastX = p.x; lastY = p.y;
-});
-
-canvas.addEventListener("mousemove", e => {
-  if (!dragging) return;
-  const p = getPos(e);
-  x += p.x - lastX;
-  y += p.y - lastY;
-  lastX = p.x; lastY = p.y;
-  draw();
-});
-
-canvas.addEventListener("mouseup", () => dragging = false);
-canvas.addEventListener("touchstart", e => {
-  dragging = true;
-  const p = getPos(e);
-  lastX = p.x; lastY = p.y;
-});
-
-canvas.addEventListener("touchmove", e => {
-  if (!dragging) return;
-  e.preventDefault();
-  const p = getPos(e);
-  x += p.x - lastX;
-  y += p.y - lastY;
-  lastX = p.x; lastY = p.y;
-  draw();
-}, { passive: false });
-
-canvas.addEventListener("touchend", () => dragging = false);
-
-/* الرسم */
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (img.src) {
+  if (userImage) {
     ctx.save();
+
+    /* قص الصورة جوه مساحة الدرع */
     ctx.beginPath();
-    ctx.rect(PHOTO_AREA.x, PHOTO_AREA.y, PHOTO_AREA.width, PHOTO_AREA.height);
+    ctx.rect(
+      PHOTO_AREA.x,
+      PHOTO_AREA.y,
+      PHOTO_AREA.width,
+      PHOTO_AREA.height
+    );
     ctx.clip();
 
-    ctx.translate(x, y);
+    ctx.translate(posX, posY);
     ctx.rotate(rotation);
     ctx.scale(scale, scale);
-    ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+    ctx.drawImage(
+      userImage,
+      -userImage.width / 2,
+      -userImage.height / 2
+    );
+
     ctx.restore();
   }
 
   /* رسم الفريم فوق الصورة */
-  ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(frame, 0, 0, 1080, 1350);
 }
 
-/* تحميل الصورة كاملة */
-document.getElementById("download").addEventListener("click", () => {
+/* 🖱️ + 📱 Drag */
+canvas.addEventListener("mousedown", startDrag);
+canvas.addEventListener("mousemove", drag);
+canvas.addEventListener("mouseup", endDrag);
+canvas.addEventListener("mouseleave", endDrag);
+
+canvas.addEventListener("touchstart", startDrag);
+canvas.addEventListener("touchmove", drag);
+canvas.addEventListener("touchend", endDrag);
+
+function startDrag(e) {
+  isDragging = true;
+  const pos = getPosition(e);
+  startX = pos.x - posX;
+  startY = pos.y - posY;
+}
+
+function drag(e) {
+  if (!isDragging) return;
+  const pos = getPosition(e);
+  posX = pos.x - startX;
+  posY = pos.y - startY;
+  draw();
+}
+
+function endDrag() {
+  isDragging = false;
+}
+
+function getPosition(e) {
+  const rect = canvas.getBoundingClientRect();
+  if (e.touches) {
+    return {
+      x: (e.touches[0].clientX - rect.left) * (canvas.width / rect.width),
+      y: (e.touches[0].clientY - rect.top) * (canvas.height / rect.height)
+    };
+  }
+  return {
+    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+    y: (e.clientY - rect.top) * (canvas.height / rect.height)
+  };
+}
+
+/* 🎛 Controls */
+function zoomIn() {
+  scale *= 1.05;
+  draw();
+}
+
+function zoomOut() {
+  scale *= 0.95;
+  draw();
+}
+
+function rotateLeft() {
+  rotation -= Math.PI / 18;
+  draw();
+}
+
+function rotateRight() {
+  rotation += Math.PI / 18;
+  draw();
+}
+
+/* ⬇ حفظ الصورة بالجودة الكاملة + الفريم */
+function downloadImage() {
   const link = document.createElement("a");
-  link.download = "FOMSU-3-Graduation.png";
+  link.download = "FOMSU-Graduation.png";
   link.href = canvas.toDataURL("image/png", 1.0);
   link.click();
-});
+}
