@@ -32,7 +32,7 @@ h1 {
 canvas {
   width: 100%;
   height: auto;
-  touch-action: none; /* Drag شغال على الموبايل */
+  touch-action: none; /* Drag شغال موبايل */
 }
 
 .controls {
