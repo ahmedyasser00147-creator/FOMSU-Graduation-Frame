@@ -5,7 +5,7 @@
 
 body {
   margin: 0;
-  background: #5fa8d3; /* Dark baby blue */
+  background: #5fa8d3; /* Dark Baby Blue */
   display: flex;
   justify-content: center;
 }
@@ -32,7 +32,7 @@ h1 {
 canvas {
   width: 100%;
   height: auto;
-  touch-action: none; /* مهم جدًا للموبايل */
+  touch-action: none;
 }
 
 .controls {
