@@ -2,7 +2,7 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 const frame = new Image();
-frame.src = "frame.png"; // اسم صورة الفريم
+frame.src = "frame.png";
 
 const upload = document.getElementById("upload");
 
@@ -16,7 +16,7 @@ let isDragging = false;
 let startX = 0;
 let startY = 0;
 
-/* 🔴 مساحة الصورة داخل الدرع (مظبوطة على التصميم) */
+/* 🔴 مساحة الصورة داخل الدرع */
 const PHOTO_AREA = {
   x: 300,
   y: 360,
@@ -34,10 +34,10 @@ upload.addEventListener("change", e => {
   img.onload = () => {
     userImage = img;
 
-    scale = Math.max(
-      PHOTO_AREA.width / img.width,
-      PHOTO_AREA.height / img.height
-    );
+    /* ✅ Cover mode – يمنع الفراغ الأبيض */
+    const scaleX = PHOTO_AREA.width / img.width;
+    const scaleY = PHOTO_AREA.height / img.height;
+    scale = Math.max(scaleX, scaleY) * 1.05;
 
     posX = PHOTO_AREA.x + PHOTO_AREA.width / 2;
     posY = PHOTO_AREA.y + PHOTO_AREA.height / 2;
@@ -54,7 +54,6 @@ function draw() {
   if (userImage) {
     ctx.save();
 
-    /* قص الصورة جوه مساحة الدرع */
     ctx.beginPath();
     ctx.rect(
       PHOTO_AREA.x,
@@ -77,7 +76,6 @@ function draw() {
     ctx.restore();
   }
 
-  /* رسم الفريم فوق الصورة */
   ctx.drawImage(frame, 0, 0, 1080, 1350);
 }
 
@@ -132,6 +130,13 @@ function zoomIn() {
 
 function zoomOut() {
   scale *= 0.95;
+
+  const minScale = Math.max(
+    PHOTO_AREA.width / userImage.width,
+    PHOTO_AREA.height / userImage.height
+  );
+
+  if (scale < minScale) scale = minScale;
   draw();
 }
 
@@ -145,7 +150,7 @@ function rotateRight() {
   draw();
 }
 
-/* ⬇ حفظ الصورة بالجودة الكاملة + الفريم */
+/* ⬇ حفظ الصورة بالجودة الكاملة */
 function downloadImage() {
   const link = document.createElement("a");
   link.download = "FOMSU-Graduation.png";
