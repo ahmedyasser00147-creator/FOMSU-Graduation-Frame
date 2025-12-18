@@ -1,27 +1,1 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Graduation Frame</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<h2>Upload Your Photo</h2>
-<input type="file" id="upload" accept="image/*">
-<br><br>
-
-<div id="canvas-container" style="position: relative; display: inline-block;">
-    <canvas id="canvas" width="800" height="800"></canvas>
-</div>
-<br><br>
-
-<label>Zoom:</label>
-<input type="range" id="zoom" min="0.5" max="2" step="0.01" value="1">
-<br><br>
-
-<button id="download">Download Image</button>
-
-<script src="script.js"></script>
-</body>
-</html>
+<!DOCTYPE html><html lang="en"><head>  <meta charset="UTF-8">  <title>Graduation Frame</title>  <link rel="stylesheet" href="style.css"></head><body>  <div class="container">    <h1>🎓 Graduation Frame</h1>    <p>Upload your photo, adjust it, and download in high quality</p>    <div class="editor">      <canvas id="canvas"></canvas>      <img src="frame.png" id="frame">    </div>    <div class="controls">      <input type="file" id="upload" accept="image/*">      <label>Zoom</label>      <input type="range" id="zoom" min="0.5" max="2.5" step="0.01" value="1">      <label>Rotate</label>      <input type="range" id="rotate" min="-180" max="180" value="0">      <button id="download">Download Image</button>    </div>  </div>  <script src="script.js"></script></body></html>

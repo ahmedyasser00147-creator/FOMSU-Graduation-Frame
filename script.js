@@ -1,65 +1,1 @@
-const upload = document.getElementById('upload');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const zoomInput = document.getElementById('zoom');
-
-const frame = new Image();
-frame.src = 'frame.png';
-
-let img = new Image();
-let imgX = 0, imgY = 0;
-let scale = 1;
-let isDragging = false;
-let startX, startY;
-
-// Upload photo
-upload.addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    img.src = URL.createObjectURL(file);
-});
-
-img.onload = function() {
-    imgX = 0;
-    imgY = 0;
-    scale = 1;
-    drawCanvas();
-}
-
-// Zoom control
-zoomInput.addEventListener('input', function() {
-    scale = parseFloat(this.value);
-    drawCanvas();
-});
-
-// Dragging
-canvas.addEventListener('mousedown', function(e) {
-    isDragging = true;
-    startX = e.offsetX - imgX;
-    startY = e.offsetY - imgY;
-});
-
-canvas.addEventListener('mousemove', function(e) {
-    if (isDragging) {
-        imgX = e.offsetX - startX;
-        imgY = e.offsetY - startY;
-        drawCanvas();
-    }
-});
-
-canvas.addEventListener('mouseup', function() { isDragging = false; });
-canvas.addEventListener('mouseleave', function() { isDragging = false; });
-
-// Draw function
-function drawCanvas() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(img, imgX, imgY, img.width*scale, img.height*scale);
-    ctx.drawImage(frame, 0,0,canvas.width,canvas.height);
-}
-
-// Download
-document.getElementById('download').addEventListener('click', function() {
-    const link = document.createElement('a');
-    link.download = 'graduation-frame.png';
-    link.href = canvas.toDataURL();
-    link.click();
-});
+const canvas = document.getElementById("canvas");const ctx = canvas.getContext("2d");/* أبعاد الفريم الأصلية */canvas.width = 1080;canvas.height = 1350;let img = new Image();let scale = 1;let rotation = 0;/* مركز الفريم */let x = 540;let y = 675;/* رفع الصورة */document.getElementById("upload").addEventListener("change", e => {  const reader = new FileReader();  reader.onload = () => {    img.src = reader.result;    img.onload = draw;  };  reader.readAsDataURL(e.target.files[0]);});/* Zoom */document.getElementById("zoom").addEventListener("input", e => {  scale = e.target.value;  draw();});/* Rotate */document.getElementById("rotate").addEventListener("input", e => {  rotation = e.target.value * Math.PI / 180;  draw();});/* Dragging */let dragging = false;let lastX, lastY;canvas.addEventListener("mousedown", e => {  dragging = true;  lastX = e.offsetX * (canvas.width / canvas.clientWidth);  lastY = e.offsetY * (canvas.height / canvas.clientHeight);});canvas.addEventListener("mousemove", e => {  if (!dragging) return;  const currentX = e.offsetX * (canvas.width / canvas.clientWidth);  const currentY = e.offsetY * (canvas.height / canvas.clientHeight);  x += currentX - lastX;  y += currentY - lastY;  lastX = currentX;  lastY = currentY;  draw();});canvas.addEventListener("mouseup", () => dragging = false);canvas.addEventListener("mouseleave", () => dragging = false);/* رسم الصورة */function draw() {  ctx.clearRect(0, 0, canvas.width, canvas.height);  if (!img.src) return;  ctx.save();  ctx.translate(x, y);  ctx.rotate(rotation);  ctx.scale(scale, scale);  ctx.drawImage(img, -img.width / 2, -img.height / 2);  ctx.restore();}/* تحميل الصورة بأعلى جودة */document.getElementById("download").addEventListener("click", () => {  const link = document.createElement("a");  link.download = "graduation_1080x1350.png";  link.href = canvas.toDataURL("image/png", 1.0);  link.click();});
