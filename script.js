@@ -16,7 +16,7 @@ let isDragging = false;
 let startX = 0;
 let startY = 0;
 
-/* 🔴 مساحة الصورة داخل الدرع */
+/* مساحة الصورة داخل الدرع (مرجعية فقط) */
 const PHOTO_AREA = {
   x: 300,
   y: 360,
@@ -26,7 +26,7 @@ const PHOTO_AREA = {
 
 frame.onload = draw;
 
-/* 📤 تحميل الصورة */
+/* تحميل صورة المستخدم */
 upload.addEventListener("change", e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -38,7 +38,7 @@ upload.addEventListener("change", e => {
     const scaleX = PHOTO_AREA.width / img.width;
     const scaleY = PHOTO_AREA.height / img.height;
 
-    /* ✅ Cover + Safe Margin كبير يمنع الأبيض مع الدوران */
+    /* Cover + أمان كبير */
     scale = Math.max(scaleX, scaleY) * 1.25;
 
     posX = PHOTO_AREA.x + PHOTO_AREA.width / 2;
@@ -50,21 +50,13 @@ upload.addEventListener("change", e => {
   img.src = URL.createObjectURL(file);
 });
 
-/* 🎨 الرسم */
+/* الرسم */
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  /* 🟦 رسم صورة المستخدم (من غير Clip) */
   if (userImage) {
     ctx.save();
-
-    ctx.beginPath();
-    ctx.rect(
-      PHOTO_AREA.x,
-      PHOTO_AREA.y,
-      PHOTO_AREA.width,
-      PHOTO_AREA.height
-    );
-    ctx.clip();
 
     ctx.translate(posX, posY);
     ctx.rotate(rotation);
@@ -79,6 +71,7 @@ function draw() {
     ctx.restore();
   }
 
+  /* 🟨 رسم الفريم فوق الصورة */
   ctx.drawImage(frame, 0, 0, 1080, 1350);
 }
 
